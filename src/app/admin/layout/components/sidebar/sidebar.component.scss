@@ -1,0 +1,19 @@
+.sidebar-menu {
+  padding: 0;
+  background-color: #f4f4f4; // Light background for the sidebar
+}
+
+.menu-link {
+  text-decoration: none; // Remove underline
+  color: #333; // Default text color
+  font-weight: 500; // Slightly bold text
+  display: block;
+  padding: 10px 15px;
+  border-radius: 4px;
+  transition: background-color 0.3s, color 0.3s;
+
+  &:hover {
+    background-color: #007bff; // Highlight color on hover
+    color: #fff; // White text on hover
+  }
+}

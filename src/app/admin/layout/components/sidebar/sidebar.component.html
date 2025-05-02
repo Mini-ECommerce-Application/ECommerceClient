@@ -1,8 +1,17 @@
-<ul>
-    <!-- Dashboard için /admin kullanmamızın sebebi .com/admin dediğimizde dashboard component çalıştığı için.  -->
-    <li><a routerLink="/admin"> Dashboard</a></li> 
-    <li><a routerLink="customers"> Customers</a></li>
-    <li><a routerLink="products"> Products</a></li>
-    <li><a routerLink="orders">Orders</a></li>
-    <li><a routerLink="">Ana Sayfa</a></li>
-</ul>
+<mat-list role="list" class="sidebar-menu">
+  <mat-list-item role="listitem">
+    <a routerLink="/admin" class="menu-link">Dashboard</a>
+  </mat-list-item>
+  <mat-list-item role="listitem">
+    <a routerLink="customers" class="menu-link">Customers</a>
+  </mat-list-item>
+  <mat-list-item role="listitem">
+    <a routerLink="products" class="menu-link">Products</a>
+  </mat-list-item>
+  <mat-list-item role="listitem">
+    <a routerLink="orders" class="menu-link">Orders</a>
+  </mat-list-item>
+  <mat-list-item role="listitem">
+    <a routerLink="" class="menu-link">Ana Sayfa</a>
+  </mat-list-item>
+</mat-list>

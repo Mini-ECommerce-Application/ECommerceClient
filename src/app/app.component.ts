@@ -21,15 +21,9 @@ export class AppComponent implements OnInit {
     private toastr: CustomToastrService,
     private spinner: NgxSpinnerService,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      $.get('https://localhost:7119/api/Products')
-        .done(response => console.log('Response:', response))
-        .fail((xhr, status, error) => {
-          console.error('Request failed:', { status, error, response: xhr.responseText });
-        });
-    }
-  }  
+
+  }
 }

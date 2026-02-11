@@ -1,7 +1,7 @@
 <mat-drawer-container class="product-create">
     <mat-drawer mode="side" opened>
         <!--Left Side-->
-        <app-create></app-create>
+        <app-create (createdProduct)="createdProduct($event)"></app-create> <!-- createdProduct adında bir event oluşturduk, bu event (yani created_product), create component'inde bir ürün oluşturulduğunda tetiklenecek ve oluşturulan ürünü parent component'e gönderecek. Parent component ise bu ürünü list component'ine gönderecek ve list component'i de bu ürünü listeye ekleyecek. -->
     </mat-drawer>
     <mat-drawer-content>
         <!-- Right side-->

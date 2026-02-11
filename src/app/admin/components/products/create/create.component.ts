@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ProductService } from '../../../../services/common/models/product.service';
 import { Create_Product } from '../../../../contracts/create_product';
 import { BaseComponent, SpinnerType } from '../../../../base/base.component';
@@ -21,6 +21,9 @@ export class CreateComponent extends BaseComponent implements OnInit {
 
   ngOnInit(): void { }
 
+  // Output Event oluşturuyoruz, kısaca output event, bir component'in dışarıya veri göndermesini sağlayan bir mekanizmadır. Örneğin, bir form component'i düşünelim. Bu form component'i, kullanıcıdan veri alır ve bu veriyi parent component'e göndermek isteyebilir. İşte bu durumda output event kullanarak veriyi parent component'e gönderebiliriz. Output event, @Output dekoratörü ile tanımlanır ve EventEmitter sınıfı kullanılarak oluşturulur. Output event, bir component'in dışarıya veri göndermesini sağlar ve bu veriyi parent component tarafından dinlenebilir hale getirir.
+  @Output() createdProduct: EventEmitter<Create_Product> = new EventEmitter();
+
   create(name: HTMLInputElement, price: HTMLInputElement, stock: HTMLInputElement) {
     // Form validation
     if (!name.value) {
@@ -38,27 +41,30 @@ export class CreateComponent extends BaseComponent implements OnInit {
 
     this.showSpinner(SpinnerType.BallAtom);
 
-    const product = new Create_Product();
-    product.name = name.value;
-    product.price = parseFloat(price.value);
-    product.stock = parseInt(stock.value);
+    const create_product = new Create_Product();
+    create_product.name = name.value;
+    create_product.price = parseFloat(price.value);
+    create_product.stock = parseInt(stock.value);
     
     
     
-    this.productService.create(product, 
-      () => {
+    this.productService.create(create_product, 
+      () => { // başarılı ise burası çalışacak.
         this.hideSpinner(SpinnerType.BallAtom);
         this.alertify.message("Ürün başarıyla eklenmiştir.", {
           dismissOthers: true,
           messageType: MessageType.Success,
           position: Position.TopRight
         });
+
+        this.createdProduct.emit(create_product); // Ürün başarıyla oluşturulduktan sonra, createdProduct event'ini emit ediyoruz ve oluşturulan ürünü parametre olarak gönderiyoruz. Böylece, parent component bu event'i dinleyebilir ve yeni oluşturulan ürünü alabilir.
+
         // Form reset
         name.value = '';
         price.value = '0';
         stock.value = '0';
       }, 
-      errorMessage => {
+      errorMessage => { // başarısız ise burası çalışacak.
         this.hideSpinner(SpinnerType.BallAtom);
         this.alertify.message(errorMessage, {
           dismissOthers: true,

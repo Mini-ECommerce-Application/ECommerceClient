@@ -7,6 +7,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertifyService, MessageType, Position } from '../../../../services/admin/alertify.service';
 import { MatPaginator } from '@angular/material/paginator';
 
+declare var $: any; // Jquery'i kullanabilmek için $any tanımlaması yapıyoruz. Böylece, JQuery'i kullanarak HTML elementlerine erişebiliriz. Örneğin, delete fonksiyonunda event.srcElement ile tıklanan elemente erişiyoruz. Ancak, TypeScript'te event.srcElement'in tipi EventTarget olduğu için, bu elementin parentElement özelliğine erişemeyiz. Bu yüzden, $any kullanarak event.srcElement'in tipini any yapıyoruz ve böylece parentElement özelliğine erişebiliriz.
+
 @Component({
   selector: 'app-list',
   standalone: false,
@@ -23,7 +25,7 @@ export class ListComponent extends BaseComponent implements OnInit {
     super(spinner)
   }
 
-  displayedColumns: string[] = ['name', 'stock', 'price', 'createdDate', 'updatedDate'];
+  displayedColumns: string[] = ['name', 'stock', 'price', 'createdDate', 'updatedDate', 'delete', 'edit']; // Tablo başlıklarını tanımlıyoruz. HTML'de mat-header-cell'lerde bu isimleri kullanacağız. Ayrıca, mat-row'larda da bu isimleri kullanarak verileri göstereceğiz.
 
   dataSource: MatTableDataSource<List_Product> = null; // Buradaki nesne oluşturma işlemini, ürünler geldikten sonra yapılacak. O yüzden null olarak başlatıldı. (yani API'den ürünler geldikten sonra oluşturulacak.) Çünkü API'den ürünler gelmeden önce oluşturulursa, boş bir tablo oluşur ve ürünler geldikten sonra tablo güncellenmez.
 
@@ -33,22 +35,6 @@ export class ListComponent extends BaseComponent implements OnInit {
   async ngOnInit(): Promise<void> {
 
     await this.getProducts();
-
-    // const allProducts: List_Product[] = await this.productService.list(
-    //   () => {
-    //     this.hideSpinner(SpinnerType.BallAtom)
-    //   },
-    //   errorMessage => {
-    //     this.hideSpinner(SpinnerType.BallAtom)
-    //     this.alertiyfy.message(errorMessage, {
-    //       dismissOthers: true,
-    //       messageType: MessageType.Error,
-    //       position: Position.TopRight
-    //     })
-    //   }
-    // )
-
-    // this.dataSource = new MatTableDataSource<List_Product>(allProducts);
 
   }
 
@@ -72,8 +58,15 @@ export class ListComponent extends BaseComponent implements OnInit {
   }
 
   // Sayfa değiştiğinde çalışacak fonksiyon. Paginator'ın pageIndex ve pageSize değerlerini kullanarak ürünleri tekrar yükleyeceğiz. Çünkü sayfa değiştiğinde yeni sayfanın ürünlerini yüklememiz gerekiyor.
-  async pageChanged(){
+  async pageChanged() {
     await this.getProducts();
   }
 
 }
+
+
+// Burada delete işlemini her element için yapmamak adına Direktif elementini kullanacağız, Direktif kısaca:
+// 3 tür directive vardır.
+// 1- Attribute Directive: HTML elementlerine yeni özellikler eklemek için kullanılır. Örneğin, ngClass, ngStyle gibi.
+// 2- Structural Directive: HTML elementlerinin yapısını değiştirmek için kullanılır. Örneğin, ngIf, ngFor gibi.
+// 3- Component Directive: Kendi başına bir HTML elementi oluşturan directive türüdür. Örneğin, app-list gibi. Component Directive'ler, HTML elementleri gibi kullanılabilirler ve kendi template'lerine sahip olabilirler. Bu sayede, tekrar kullanılabilir ve modüler bir yapı oluşturulabilir.

@@ -3,6 +3,7 @@ import { HttpClientService } from '../http-client.service';
 import { Create_Product } from '../../../contracts/create_product';
 import { HttpErrorResponse } from '@angular/common/http';
 import { List_Product } from '../../../contracts/list_product';
+import { first, firstValueFrom, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -32,15 +33,6 @@ export class ProductService {
       });
   }
 
-  // Veriyi burada elde etmemiz gerekiyor çünkü API'den veriyi aldıktan sonra tabloyu oluşturacağız. Eğer veriyi burada elde etmezsek, tabloyu oluşturamayız çünkü tabloyu oluşturmak için veriye ihtiyacımız var.
-  // async read() {
-  //   await this.httpClientService.get<List_Product[]>({
-  //     controller: "products"
-  //   }).toPromise();
-  // }
-  // Yukarıda biz await ve toPromise kullanarak veriyi elde etmeye çalıştık ama burada SuccessCallBack ve ErrorCallBack kullanarak veriyi elde etmeye çalışacağız. Çünkü başarı veya hata durumunda kullanıcıya mesaj vermek isteyebiliriz. Bu yüzden SuccessCallBack ve ErrorCallBack kullanarak veriyi elde etmeye çalışacağız.
-
-  
   // Kritik parametreler dışında kalan parametreleri nullable yapalım ki isteğe bağlı olsunlar, geliştirici sucess olduğunda illa bir mesaj vermek istemeyebilir.
   // Async fonksiyonlar her zaman bir promise döner o yüzden dönüş tipini Promise<{totalCount: number, List_Product[]}> yapıyoruz
   async read(page: number = 0, size: number = 5, sucessCallBack?: () => void, errorCallBack?: (errorMessage: string) => void): Promise<{ totalCount: number, products: List_Product[] }> {
@@ -60,19 +52,13 @@ export class ProductService {
   }
 
 
-  // async list(
-  //   successCallBack?: () => void, // success callback fonksiyonu herhangi bir değer almıyor ve void döndürüyor
-  //   errorCallBack?: (errorMessage: string) => void) // error callback fonksiyonu bir string değer alıyor ve void döndürüyor
-  //   : Promise<List_Product[]> { // async fonksiyonlar her zaman bir promise döner o yüzden dönüş tipini Promise<List_Product[]> yapıyoruz
-  //   const promiseData: Promise<List_Product[]> = this.httpClientService.get<List_Product[]>({
-  //     controller: "products" // products controller'ına istek atılıyor
-  //   }).toPromise(); // toPromise şu şekilde çalışıyor asenkron bir şekilde veriyi bekliyor c#deki await gibi biz de daha sonra veriyi alıyoruz. Await kullanabilmek için fonksiyonun async olması gerekiyor
+  async delete(id: string) {
 
-  //   // promiseData'dan veri başarılı bir şekilde geliyorsa then() kısmında handle edeceğiz, eğer hata varsa catch() kısmında handle edeceğiz.
-  //   promiseData.then(d => successCallBack())
-  //     .catch((errorResponse: HttpErrorResponse) => errorCallBack(errorResponse.message));
+    const deleteObservable: Observable<any> = this.httpClientService.delete<any>(
+      { controller: "products" }, id);
 
-  //   // daha sonra veriyi döndürüyoruz
-  //   return await promiseData;
-  // }
+    await firstValueFrom(deleteObservable);
+
+  }
+
 }

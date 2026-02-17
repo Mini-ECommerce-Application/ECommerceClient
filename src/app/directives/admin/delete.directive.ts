@@ -4,6 +4,10 @@ import { BaseComponent, SpinnerType } from '../../base/base.component';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { DeleteDialogComponent, DeleteState } from '../../dialogs/delete-dialog/delete-dialog.component';
+import { HttpClientService } from '../../services/common/http-client.service';
+import { AlertifyService, MessageType, Position } from '../../services/admin/alertify.service';
+import { HttpErrorResponse } from '@angular/common/http';
+
 
 declare var $: any; // Jquery'i kullanamak için $any tanımlaması yapıyoruz.
 
@@ -19,8 +23,9 @@ export class DeleteDirective {
 
   constructor(private element: ElementRef,
     private _renderer: Renderer2,
-    private productService: ProductService,
+    private httpClientService: HttpClientService,
     private spinner: NgxSpinnerService,
+    private alertifyService: AlertifyService,
     public dialog: MatDialog
   ) {
 
@@ -35,24 +40,42 @@ export class DeleteDirective {
 
   }
 
-  @Input() id: string; // Silinecek olan ürünün id'sini tutacak bir input tanımlıyoruz. Bu input, direktifi çağırdığımız HTML elementinde kullanılacak. Örneğin, <td [id]="element.id" mat-cell *matCellDef="let element" appDelete> şeklinde kullanacağız. Bu sayede, bu td elementine tıklandığında, bu td elementinin id'si silinecek olan ürünün id'si olacak ve bu id'yi kullanarak API'ye delete isteği göndereceğiz.
-  @Output() callback: EventEmitter<any> = new EventEmitter(); // Silme işlemi gerçekleştirdikten sonra callback adında td üzerinden bir değer tanımladık bu değer verileri yüklerken kullandığımız getProducts fonksiyonunu çağıracak. Yani, silme işlemi gerçekleştikten sonra ürünleri tekrar yükleyeceğiz. Bu sayede, silme işlemi gerçekleştikten sonra tablo güncellenecek ve silinen ürün tabloya yansımayacak.
+  @Input() id: string; // Silinecek olan ürünün id'sini tutacak bir input tanımlıyoruz. Bu input, direktifi çağırdığımız HTML elementinde kullanılacak. 
+  @Input() controller: string; // Silinecek olan ürünün controller'ını tutacak bir input tanımlıyoruz. Bu input, direktifi çağırdığımız HTML elementinde kullanılacak.
+  @Output() callback: EventEmitter<any> = new EventEmitter(); // Silme işlemi gerçekleştirdikten sonra callback adında td üzerinden bir değer tanımladık bu değer verileri yüklerken kullandığımız getProducts fonksiyonunu çağıracak.
 
-  @HostListener("click") // HostListener, direktifi çağırdığımız HTML elementine tıklama olayını dinlemek için kullanılır. Yani, bu direktifi çağırdığımız HTML elementine tıklandığında, deleteItem fonksiyonu çalışacak.
+  @HostListener("click") // HostListener, direktifi çağırdığımız HTML elementine tıklama olayını dinlemek için kullanılır. 
   async onclick() {
-    this.openDialog(async () => { // openDialog fonksiyonunu çağırıyoruz ve bu fonksiyona bir callback fonksiyonu gönderiyoruz. Bu callback fonksiyonu, dialog kapandıktan sonra çalışacak ve silme işlemi gerçekleşecek. Async olmasının sebebi, silme işlemi API'ye bir delete isteği göndermek olduğu için, bu işlemin sonucunu beklememiz gerekiyor. Yani, silme işlemi gerçekleşmeden önce, API'den gelen cevabı beklememiz gerekiyor. Bu yüzden, callback fonksiyonunu async yapıyoruz.
+    this.openDialog(async () => { // openDialog fonksiyonunu çağırıyoruz ve bu fonksiyona bir callback fonksiyonu gönderiyoruz. Bu callback fonksiyonu, dialog kapandıktan sonra çalışacak ve silme işlemi gerçekleşecek.
 
       this.spinner.show(SpinnerType.BallAtom);
 
       const td: HTMLTableCellElement = this.element.nativeElement;
-      await this.productService.delete(this.id); // API'den dönecek silme işlemi sonucunu bekliyoruz.
-      $(td.parentElement).animate({
-        opacity: 0,
-        left: "+=50",
-        height: "toogle"
-      }, 700, () => {
-        this.callback.emit(); // Silme işlemi gerçekleştikten sonra callback fonksiyonunu çağırıyoruz. Bu sayede, silme işlemi gerçekleştikten sonra ürünleri tekrar yükleyeceğiz. Bu sayede, silme işlemi gerçekleştikten sonra tablo güncellenecek ve silinen ürün tabloya yansımayacak.
-      });
+      // await this.productService.delete(this.id); // API'den dönecek silme işlemi sonucunu bekliyoruz.
+      this.httpClientService.delete(
+        { controller: this.controller }, this.id).subscribe(data => {
+          $(td.parentElement).animate({
+            opacity: 0,
+            left: "+=50",
+            height: "toogle"
+          }, 700, () => {
+            this.callback.emit(); // Silme işlemi gerçekleştikten sonra callback fonksiyonunu çağırıyoruz. Bu sayede, silme işlemi gerçekleştikten sonra ürünleri tekrar yükleyeceğiz. Bu sayede, silme işlemi gerçekleştikten sonra tablo güncellenecek ve silinen ürün tabloya yansımayacak.
+
+            // Alertify ile silme işlemi başarılı mesajı gösteriyoruz.
+            this.alertifyService.message("Ürün başarıyla silindi.", {
+              messageType: MessageType.Success,
+              position: Position.TopRight,
+              dismissOthers: true
+            })
+          });
+        }, (errorResponse: HttpErrorResponse) => {
+          this.spinner.hide(SpinnerType.BallAtom);
+          this.alertifyService.message("Ürün silinirken bir hata oluştu.", {
+            messageType: MessageType.Error,
+            position: Position.TopRight,
+            dismissOthers: true
+          })
+        });
     })
 
   }

@@ -1,8 +1,9 @@
 import { Directive, ElementRef, EventEmitter, HostListener, Input, Output, Renderer2 } from '@angular/core';
-import { HttpClientService } from '../../services/common/http-client.service';
 import { ProductService } from '../../services/common/models/product.service';
 import { BaseComponent, SpinnerType } from '../../base/base.component';
 import { NgxSpinnerService } from 'ngx-spinner';
+import { MatDialog } from '@angular/material/dialog';
+import { DeleteDialogComponent, DeleteState } from '../../dialogs/delete-dialog/delete-dialog.component';
 
 declare var $: any; // Jquery'i kullanamak için $any tanımlaması yapıyoruz.
 
@@ -19,7 +20,8 @@ export class DeleteDirective {
   constructor(private element: ElementRef,
     private _renderer: Renderer2,
     private productService: ProductService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
+    public dialog: MatDialog
   ) {
 
     const img = _renderer.createElement("img"); // Bir img elementi oluşturuyoruz. Bu img elementini, silme işlemi için kullanacağız. Yani, bu img elementine tıklandığında silme işlemi gerçekleşecek.
@@ -38,15 +40,38 @@ export class DeleteDirective {
 
   @HostListener("click") // HostListener, direktifi çağırdığımız HTML elementine tıklama olayını dinlemek için kullanılır. Yani, bu direktifi çağırdığımız HTML elementine tıklandığında, deleteItem fonksiyonu çalışacak.
   async onclick() {
-    this.spinner.show(SpinnerType.BallAtom);
-    
-    const td: HTMLTableCellElement = this.element.nativeElement;
-    await this.productService.delete(this.id); // API'den dönecek silme işlemi sonucunu bekliyoruz.
-    $(td.parentElement).fadeOut(1200, () => {
-      this.callback.emit(); // Silme işlemi gerçekleştikten sonra callback fonksiyonunu çağırıyoruz. Bu sayede, silme işlemi gerçekleştikten sonra ürünleri tekrar yükleyeceğiz. Bu sayede, silme işlemi gerçekleştikten sonra tablo güncellenecek ve silinen ürün tabloya yansımayacak.
-    });
+    this.openDialog(async () => { // openDialog fonksiyonunu çağırıyoruz ve bu fonksiyona bir callback fonksiyonu gönderiyoruz. Bu callback fonksiyonu, dialog kapandıktan sonra çalışacak ve silme işlemi gerçekleşecek. Async olmasının sebebi, silme işlemi API'ye bir delete isteği göndermek olduğu için, bu işlemin sonucunu beklememiz gerekiyor. Yani, silme işlemi gerçekleşmeden önce, API'den gelen cevabı beklememiz gerekiyor. Bu yüzden, callback fonksiyonunu async yapıyoruz.
+
+      this.spinner.show(SpinnerType.BallAtom);
+
+      const td: HTMLTableCellElement = this.element.nativeElement;
+      await this.productService.delete(this.id); // API'den dönecek silme işlemi sonucunu bekliyoruz.
+      $(td.parentElement).animate({
+        opacity: 0,
+        left: "+=50",
+        height: "toogle"
+      }, 700, () => {
+        this.callback.emit(); // Silme işlemi gerçekleştikten sonra callback fonksiyonunu çağırıyoruz. Bu sayede, silme işlemi gerçekleştikten sonra ürünleri tekrar yükleyeceğiz. Bu sayede, silme işlemi gerçekleştikten sonra tablo güncellenecek ve silinen ürün tabloya yansımayacak.
+      });
+    })
 
   }
+
+  // Burası Önemli: Şimdi onclick fonksiyonunda silme işlemini daha önceden yazmıştık ancak şimdi silme işlemini önce bir dialog açıp ondan sonra bu fonksiyonu çağırmak için bir call yapacağız. Yani onclick fonksiyonunun içinde bulunan kodları direkt openDialog fonksiyonuna taşımaktan ziyade, openDialog fonksiyonunda callback fonksiyonunu alacağız. Böylece, openDialog fonksiyonunu istediğimiz yerde çağırabiliriz ve bu fonksiyonu çağırdığımız yerde silme işlemi gerçekleştikten sonra ne yapılacağını belirleyebiliriz. Örneğin, openDialog fonksiyonunu list.component.html'de silme butonuna tıklama olayına bağlayabiliriz ve bu sayede, silme butonuna tıklandığında dialog açılacak ve dialogda evet butonuna tıklandığında silme işlemi gerçekleşecek ve tablo güncellenecek. 
+  openDialog(afterClosed: any): void {
+    const dialogRef = this.dialog.open(DeleteDialogComponent, {
+      width: '250px',
+      data: DeleteState.Yes,
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+      if (result === DeleteState.Yes) {
+        afterClosed(); // Dialog kapandıktan sonra, eğer result DeleteState.Yes ise, afterClosed fonksiyonunu çağırıyoruz. Bu sayede, dialogda evet butonuna tıklandığında afterClosed fonksiyonu çalışacak ve silme işlemi gerçekleşecek.
+      }
+    });
+  }
+
 
 
 }

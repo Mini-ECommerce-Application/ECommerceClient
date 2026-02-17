@@ -25,7 +25,7 @@ export class ListComponent extends BaseComponent implements OnInit {
     super(spinner)
   }
 
-  displayedColumns: string[] = ['name', 'stock', 'price', 'createdDate', 'updatedDate', 'delete', 'edit']; // Tablo başlıklarını tanımlıyoruz. HTML'de mat-header-cell'lerde bu isimleri kullanacağız. Ayrıca, mat-row'larda da bu isimleri kullanarak verileri göstereceğiz.
+  displayedColumns: string[] = ['name', 'stock', 'price', 'createdDate', 'updatedDate', 'edit', 'delete']; // Tablo başlıklarını tanımlıyoruz. HTML'de mat-header-cell'lerde bu isimleri kullanacağız. Ayrıca, mat-row'larda da bu isimleri kullanarak verileri göstereceğiz.
 
   dataSource: MatTableDataSource<List_Product> = null; // Buradaki nesne oluşturma işlemini, ürünler geldikten sonra yapılacak. O yüzden null olarak başlatıldı. (yani API'den ürünler geldikten sonra oluşturulacak.) Çünkü API'den ürünler gelmeden önce oluşturulursa, boş bir tablo oluşur ve ürünler geldikten sonra tablo güncellenmez.
 
